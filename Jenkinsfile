@@ -1,26 +1,32 @@
 pipeline {
-    agent  {
+    agent {
         label 'AGENT1'
     }
+
     environment { 
         appVersion = ''
-        REGION =M "us-east-1"
+        REGION = "us-east-1"
         ACC_ID = "461225950547"
         PROJECT = "roboshop"
         COMPONENT = "catalogue"
     }
+
     options {
         timeout(time: 30, unit: 'MINUTES') 
         disableConcurrentBuilds()
     }
-   /*  parameters {
+
+    // Uncomment and use parameters if needed
+    /*
+    parameters {
         string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
         text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
         booleanParam(name: 'TOGGLE', defaultValue: true, description: 'Toggle this value')
         choice(name: 'CHOICE', choices: ['One', 'Two', 'Three'], description: 'Pick something')
         password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password') 
-    } */
-    // Build
+    }
+    */
+
     stages {
         stage('Read package.json') {
             steps {
@@ -31,32 +37,29 @@ pipeline {
                 }
             }
         }
+
         stage('Install Dependencies') {
             steps {
-                script{
-                   sh """
-                    npm install
-                   """  
+                script {
+                    sh 'npm install'
                 }
             }
         }
-        
-        
-    }
+
         stage('Docker Build') {
-         steps {
-             script {
-                 withAWS(credentials: 'aws-creds', region: 'us-east-1') {
-                     sh """
-                            aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com
-                            docker build -t ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${appVersion} .
-                            docker push ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${appVersion}
+            steps {
+                script {
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                        sh """
+                            aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ACC_ID}.dkr.ecr.${REGION}.amazonaws.com
+                            docker build -t ${ACC_ID}.dkr.ecr.${REGION}.amazonaws.com/${PROJECT}/${COMPONENT}:${appVersion} .
+                            docker push ${ACC_ID}.dkr.ecr.${REGION}.amazonaws.com/${PROJECT}/${COMPONENT}:${appVersion}
                         """
                     }
                 }
             }
         }
-
+    }
 
     post { 
         always { 
