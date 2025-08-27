@@ -43,7 +43,7 @@ pipeline {
         
         
     }
-     stage('Docker Build') {
+        stage('Docker Build') {
          steps {
              script {
                  withAWS(credentials: 'aws-creds', region: 'us-east-1') {
